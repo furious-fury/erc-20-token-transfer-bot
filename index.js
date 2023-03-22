@@ -1,6 +1,6 @@
-require('dotenv').config();
+require("dotenv").config();
 const Web3 = require("web3");
-const cron = require('node-cron');
+const cron = require("node-cron");
 
 const Web3js = new Web3(
   new Web3.providers.HttpProvider(
@@ -11,6 +11,7 @@ const Web3js = new Web3(
 let tokenAddress = "0x230717ef072EBb3B8b1f5054B9F56f2385104D8D"; // Token contract address
 let toAddress = "0x939b7cd653c9A09E5435262d90BfceaFb2ED382e"; // where to send it
 let fromAddress = "0x5379F1A6F2011FbA9a8B809C31508451E88B0950"; // your wallet
+var Gas;
 
 const privateKey = process.env.YOUR_PRIVATE_KEY; //Your Private key environment variable
 
@@ -56,11 +57,10 @@ let amount = Web3js.utils.toHex(Web3js.utils.toWei("10")); //1 DEMO Token
 
 let data = contract.methods.transfer(toAddress, amount).encodeABI();
 
-
-
-function sendErcToken() {
+async function sendErcToken() {
+  Gas = await Web3js.eth.getGasPrice();
   let txObj = {
-    gas: Web3js.utils.toHex(10000000),
+    gas: Gas * 20,
 
     to: tokenAddress,
 
@@ -73,10 +73,10 @@ function sendErcToken() {
 
   Web3js.eth.accounts.signTransaction(txObj, privateKey, (err, signedTx) => {
     if (err) {
-      return (err);
+      return err;
     } else {
       console.log(signedTx);
-      console.log('transaction successfull yay !')
+      console.log("transaction sent to the blockchain!");
 
       return Web3js.eth.sendSignedTransaction(
         signedTx.rawTransaction,
@@ -85,7 +85,7 @@ function sendErcToken() {
             console.log(err);
           } else {
             console.log(res);
-            console.log('token sent out !')
+            console.log("token sent out !");
           }
         }
       );
